@@ -41,7 +41,7 @@ A CLI snippet manager that allows you to manage your code snippets from the comm
 
 **Usage:**
 
-```
+```bash
 my-snippets [flags]
 ```
 
@@ -53,15 +53,15 @@ my-snippets [command]
 
 `add`        Add a new code snippet
 
-  `completion`  Generate the autocompletion script for the specified shell
+`completion`  Generate the autocompletion script for the specified shell
 
 `get`        get existing code snippet
 
- `help`        Help about any command
+`help`        Help about any command
 
 `list`        list all existing code snippet
 
-  `rm`          Remove code snippet
+`rm`          Remove code snippet
 
 **Flags:**
 
