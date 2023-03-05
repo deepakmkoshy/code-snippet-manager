@@ -9,7 +9,6 @@ Usage:
 my-snippets [command]
 ```
 
-Run   ` `for usage.
 
 ### Installation
 
@@ -22,9 +21,9 @@ Download the [my-snippets](CLI/my-snippets) executable file and export the path 
    pwd
    ```
 2. Run the command `export PATH=$PATH:/full/path/to/your/directory` to add the directory to the PATH variable.
-```bash
- export PATH=$PATH:/full/path/to/your/directory
-```
+   ```bash
+   export PATH=$PATH:/full/path/to/your/directory
+   ```
 
 3. Verify that the directory has been added to the PATH variable by running
 
