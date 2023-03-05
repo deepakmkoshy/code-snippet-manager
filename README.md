@@ -1,65 +1,86 @@
 # code-snippet-manager README
 
-This is the README for your extension "code-snippet-manager". After writing up a brief description, we recommend including the following sections.
+It allows users to quickly retrieve and insert commonly used code snippets into their current projects, saving time and effort.
 
-## Features
+## Problem we are solving
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Sometimes situations arise when we have to reuse code in a different project, and would have been better if they were saved somewhere and can be accessed easily.
+This CLI tool aims to do exactly that.
 
-For example if there is an image subfolder under your extension project workspace:
+## Description and Usage
 
-\!\[feature X\]\(images/feature-x.png\)
+Usage:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+```
+my-snippets [command]
+```
 
-## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+### Installation
 
-## Extension Settings
+Download the [my-snippets](CLI/my-snippets) executable file and export the path in your PATH variable
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 
-For example:
+1. From the directory the my-snippets is saved run the following cmd
 
-This extension contributes the following settings:
+   ```bash
+   pwd
+   ```
+2. Run the command `export PATH=$PATH:/full/path/to/your/directory` to add the directory to the PATH variable.
+   ```bash
+   export PATH=$PATH:/full/path/to/your/directory
+   ```
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+3. Verify that the directory has been added to the PATH variable by running
 
-## Known Issues
+   ```bash
+   echo PATH
+   ```
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+### **Usage**
 
 ---
 
-## Working with Markdown
 
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
+A CLI snippet manager that allows you to manage your code snippets from the command line
 
-## For more information
+**Usage:**
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+```bash
+my-snippets [flags]
+```
 
-**Enjoy!**
+```bash
+my-snippets [command]
+```
+
+**Available Commands:**
+
+`add`        Add a new code snippet
+
+`completion`  Generate the autocompletion script for the specified shell
+
+`get`        get existing code snippet
+
+`help`        Help about any command
+
+`list`        list all existing code snippet
+
+`rm`          Remove code snippet
+
+**Flags:**
+
+`-h, --help`   help for my-snippets
+
+Use   `my-snippets [command] --help`  **for more information about a command.**
+
+---
+
+## Timeline
+
+Initially we thought to build a VS code extension tool which if enabled can create code snippets very quickly. We used Javascript yo template to generate a VS code extension. Although we were able to obtain the text which is selected in VS code and set it into clipboard, we were unable to add it as a VS code snippet.
+
+So we tried a Golang CLI approach by using BoltDB to store the snippets locally.
+
+In future, we plan to make the extension work and also host the golang as a backend server and facilitate code sharing between developers.
