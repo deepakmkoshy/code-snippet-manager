@@ -1,31 +1,30 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/boltdb/bolt"
 	"github.com/spf13/cobra"
 )
 
 func saveSnippet(keyword string, code string) error {
-	// Open the BoltDB database file for read/write access, creating it if it doesn't exist
 	db, err := bolt.Open("snippets.db", 0600, nil)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	// Begin a read/write transaction
 	err = db.Update(func(tx *bolt.Tx) error {
-		// Get the snippets bucket (or create it if it doesn't exist)
 		b, err := tx.CreateBucketIfNotExists([]byte("snippets"))
 		if err != nil {
 			return err
 		}
 
-		// Store the code snippet in the bucket with the given keyword as the key
 		err = b.Put([]byte(keyword), []byte(code))
 		if err != nil {
 			return err
@@ -38,7 +37,6 @@ func saveSnippet(keyword string, code string) error {
 }
 
 func getSnippet(keyword string) (string, error) {
-	// Open the BoltDB database file for read-only access
 	db, err := bolt.Open("snippets.db", 0400, nil)
 	if err != nil {
 		return "", err
@@ -46,7 +44,6 @@ func getSnippet(keyword string) (string, error) {
 	defer db.Close()
 
 	var value []byte
-	// Get the value of the given key from the "snippets" bucket
 	err = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("snippets"))
 		if b == nil {
@@ -67,22 +64,18 @@ func getSnippet(keyword string) (string, error) {
 }
 
 func deleteSnippet(keyword string) error {
-	// Open the BoltDB database file for read/write access
 	db, err := bolt.Open("snippets.db", 0600, nil)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	// Begin a read/write transaction
 	err = db.Update(func(tx *bolt.Tx) error {
-		// Get the snippets bucket
 		b := tx.Bucket([]byte("snippets"))
 		if b == nil {
 			return errors.New("bucket not found")
 		}
 
-		// Delete the key-value pair with the given keyword
 		err = b.Delete([]byte(keyword))
 		if err != nil {
 			return err
@@ -97,7 +90,6 @@ func deleteSnippet(keyword string) error {
 func listSnippets() (map[string]string, error) {
 	snippets := make(map[string]string)
 
-	// Open the BoltDB database file for read-only access
 	db, err := bolt.Open("snippets.db", 0600, &bolt.Options{ReadOnly: true})
 	if err != nil {
 		return nil, err
@@ -112,7 +104,6 @@ func listSnippets() (map[string]string, error) {
 			return errors.New("bucket not found")
 		}
 
-		// Iterate over all the key-value pairs in the bucket
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			snippets[string(k)] = string(v)
@@ -129,31 +120,40 @@ func listSnippets() (map[string]string, error) {
 }
 
 func main() {
+	scanner := bufio.NewScanner(os.Stdin)
 
 	var rootCmd = &cobra.Command{
 		Use:   "my-snippets",
 		Short: "A CLI code snippet manager",
 		Long:  "A CLI snippet manager that allows you to manage your code snippets from the command line",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Hello, World!")
+			fmt.Println("It allows users to quickly retrieve and insert commonly used code snippets into their current projects, saving time and effort.")
+			fmt.Println("Usage:\n\tmy-snippets [flags]\n\tmy-snippets [command]")
+			fmt.Println("Run 'my-snippets --help' for usage.")
+
 		},
 	}
 
-	// Add a new sub-command
 	var addCmd = &cobra.Command{
 		Use:   "add",
 		Short: "Add a new code snippet",
 		Long:  `Add a new code snippet to the manager.`,
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			key := args[0]
-			code := args[1]
 
-			saveSnippet(key, code)
-			// TODO: Add code to add the snippet to the manager
-			// For example, you could write the snippet to a file
-			// in a specified directory or store it in a database.
+			fmt.Println("Enter the code snippet (press Ctrl+D when finished):")
+			var lines []string
+			for scanner.Scan() {
+				line := scanner.Text()
+				if line == "EOF" {
+					break
+				}
+				lines = append(lines, line)
+			}
+			snippet := strings.Join(lines, "\n")
 
+			saveSnippet(key, snippet)
 			fmt.Printf("Snippet '%s' added successfully.\n", key)
 		},
 	}
@@ -169,9 +169,7 @@ func main() {
 			key := args[0]
 
 			code, err := getSnippet(key)
-			// TODO: Add code to add the snippet to the manager
-			// For example, you could write the snippet to a file
-			// in a specified directory or store it in a database.
+
 			if err != nil {
 				fmt.Println("Error:", err)
 				return
@@ -192,9 +190,6 @@ func main() {
 			key := args[0]
 
 			deleteSnippet(key)
-			// TODO: Add code to add the snippet to the manager
-			// For example, you could write the snippet to a file
-			// in a specified directory or store it in a database.
 
 			fmt.Printf("Snippet '%s' deleted successfully.\n", key)
 		},
@@ -209,12 +204,70 @@ func main() {
 		Args:  cobra.ExactArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			snippets, err := listSnippets()
+
+			// w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.AlignRight|tabwriter.Debug)
+
 			if err != nil {
 				log.Fatal(err)
 			}
-			for keyword, code := range snippets {
-				fmt.Printf("%s : %s\n", keyword, code)
+			fmt.Printf("\nSaved Code Snippets\n    ---------    \n")
+
+			if err != nil {
+				fmt.Println(err)
+				return
 			}
+			if len(snippets) == 0 {
+				fmt.Println("No snippets found.")
+				return
+			}
+
+			// Find the length of the longest key
+			maxKeyLength := 3 // Minimum key length is 3 ("add" command)
+			for key := range snippets {
+				if len(key) > maxKeyLength {
+					maxKeyLength = len(key)
+				}
+			}
+
+			fmt.Printf("%-*s %s\n", maxKeyLength+10, "Key", "Snippet")
+			fmt.Printf("%s %s\n", strings.Repeat("-", maxKeyLength+10), strings.Repeat("-", 50))
+			for key, snippet := range snippets {
+				fmt.Printf("\n")
+				snippetLines := strings.Split(snippet, "\n")
+				if len(snippetLines) == 1 {
+					fmt.Printf("%-*s %s\n", maxKeyLength+10, key, snippetLines[0])
+				} else {
+					fmt.Printf("%-*s %s\n", maxKeyLength+10, key, snippetLines[0])
+					for _, line := range snippetLines[1:] {
+						fmt.Printf("%-*s %s\n", maxKeyLength+10, "", line)
+					}
+				}
+			}
+
+			// fmt.Printf("%-*s  %s\n", 30, "Key", "Snippet")
+			// fmt.Printf("%-*s  %s\n", 30, "---", "-------")
+
+			// for key, snippet := range snippets {
+			// 	fmt.Printf("%-*s  %-s\n", 30, key, snippet)
+			// }
+
+			// for key, value := range snippets {
+			// 	// Split multi-line snippets into lines and join with newline character
+			// 	snippetLines := strings.Split(value, "|")
+			// 	snippet := strings.Join(snippetLines, "\n")
+
+			// 	fmt.Printf("%-20s %s\n", key, snippet)
+			// }
+
+			// for k, v := range snippets {
+			// 	fmt.Fprintln(w, k+"\t"+v)
+			// }
+
+			// w.Flush()
+
+			// for keyword, code := range snippets {
+			// 	fmt.Printf("\n%s\t\t:\t%s\n", keyword, code)
+			// }
 		},
 	}
 
